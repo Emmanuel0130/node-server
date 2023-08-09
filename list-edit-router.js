@@ -3,7 +3,7 @@ const express = require('express');
 const listEditRouter = express.Router();
 
 const tasks = [
- {
+  {
     task: 'dormir',
     description: '10 - 5:30'
   },
@@ -17,25 +17,22 @@ const tasks = [
   }
 ];
 
-listEditRouter.post('/create', (req, res) => {
+function validateTask(req, res, next) {
+  const { id, isCompleted, description } = req.body;
+  if (!id || typeof isCompleted !== 'boolean' || !description) {
+    return res.status(400).json({ error: 'Solicitud no válida' });
+  }
+  next();
+}
+
+listEditRouter.post('/create', validateTask, (req, res) => {
   const { id, isCompleted, description } = req.body;
   const newTask = { id, isCompleted, description };
   tasks.push(newTask);
   res.json(newTask);
 });
 
-listEditRouter.delete('/:id', (req, res) => {
-  const idToDelete = req.params.id;
-  const taskIndex = tasks.findIndex(task => task.id === idToDelete);
-  if (taskIndex !== -1) {
-    tasks.splice(taskIndex, 1);
-    res.json({ message: 'Task deleted successfully' });
-  } else {
-    res.status(404).json({ message: 'Task not found' });
-  }
-});
-
-listEditRouter.put('/:id', (req, res) => {
+listEditRouter.put('/:id', validateTask, (req, res) => {
   const idToUpdate = req.params.id;
   const updatedTask = req.body;
   const taskIndex = tasks.findIndex(task => task.id === idToUpdate);
@@ -46,5 +43,6 @@ listEditRouter.put('/:id', (req, res) => {
     res.status(404).json({ message: 'Task not found' });
   }
 });
+
 
 module.exports = listEditRouter;
